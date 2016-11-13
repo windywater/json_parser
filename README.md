@@ -1,7 +1,7 @@
 # json parser
-Ä£·Â jsoncpp Ð´ÁËÒ»¸ö json parser¡£
+æ¨¡ä»¿ jsoncpp å†™äº†ä¸€ä¸ª json parserã€‚
 
-## ÓÃ·¨
+## ç”¨æ³•
 ```C++
 	json::Reader reader;
 	json::Value root;
