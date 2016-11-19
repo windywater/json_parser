@@ -5,7 +5,6 @@
 namespace json
 {
 
-
 class Reader
 {
 public:
@@ -42,6 +41,8 @@ private:
 	void skipSpaces();
 	bool readStringToken();
 	void readNumberToken();
+	bool parseUnicodeToUtf8(const char*& cur, std::string& str);
+	std::string unicodeToUtf8(int cp);
 
 	bool readValue(Value& value);
 	bool readObject(Value& value);

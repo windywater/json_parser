@@ -1,4 +1,5 @@
 #include "Reader.h"
+#include <sstream>
 
 namespace json
 {
@@ -6,7 +7,6 @@ namespace json
 Reader::Reader()
 {
 }
-
 
 Reader::~Reader()
 {
@@ -197,7 +197,7 @@ bool Reader::readValue(Value& value)
 bool Reader::readNumber(Token token, Value& value)
 {
 	std::string numStr(token.begin, token.end - token.begin + 1);
-	if (numStr.find('.') == std::string::npos)
+	if (numStr.find('.') == std::string::npos)	// 整数和小数分别处理
 		value = Value(stoi(numStr));
 	else
 		value = Value(stod(numStr));
@@ -219,7 +219,7 @@ bool Reader::readString(Token token, Value& value)
 	const char* cur = begin;
 	while (cur < end)
 	{
-		if (*cur == '\\')
+		if (*cur == '\\')	// 转义
 		{
 			cur++;
 			switch (*cur)
@@ -242,6 +242,14 @@ bool Reader::readString(Token token, Value& value)
 			case 't':
 				str += '\t';
 				break;
+			case 'u':
+			{
+				std::string utf8Chars;
+				if (!parseUnicodeToUtf8(cur, utf8Chars))
+					return false;
+				str += utf8Chars;
+				break;
+			}
 			default:
 				return false;
 			}
@@ -256,6 +264,56 @@ bool Reader::readString(Token token, Value& value)
 
 	value = Value(str);
 	return true;
+}
+
+bool Reader::parseUnicodeToUtf8(const char*& cur, std::string& str)
+{
+	cur++;	// 跳过u
+
+	// \u后面至少要有4个字符
+	if (m_streamEnd - cur < 4)
+		return false;
+
+	int unicode = 0;
+	std::stringstream ss;
+	ss << std::hex << std::string(cur, 4);
+	ss >> unicode;
+	str = unicodeToUtf8(unicode);
+	cur += 3;	// readString中处理完后还有一次cur++，因此这里只用后移3字符
+
+	return true;
+}
+
+std::string Reader::unicodeToUtf8(int cp)
+{
+	std::string result;
+
+	// based on description from http://en.wikipedia.org/wiki/UTF-8
+
+	if (cp <= 0x7f) {
+		result.resize(1);
+		result[0] = static_cast<char>(cp);
+	}
+	else if (cp <= 0x7FF) {
+		result.resize(2);
+		result[1] = static_cast<char>(0x80 | (0x3f & cp));
+		result[0] = static_cast<char>(0xC0 | (0x1f & (cp >> 6)));
+	}
+	else if (cp <= 0xFFFF) {
+		result.resize(3);
+		result[2] = static_cast<char>(0x80 | (0x3f & cp));
+		result[1] = static_cast<char>(0x80 | (0x3f & (cp >> 6)));
+		result[0] = static_cast<char>(0xE0 | (0xf & (cp >> 12)));
+	}
+	else if (cp <= 0x10FFFF) {
+		result.resize(4);
+		result[3] = static_cast<char>(0x80 | (0x3f & cp));
+		result[2] = static_cast<char>(0x80 | (0x3f & (cp >> 6)));
+		result[1] = static_cast<char>(0x80 | (0x3f & (cp >> 12)));
+		result[0] = static_cast<char>(0xF0 | (0x7 & (cp >> 18)));
+	}
+
+	return result;
 }
 
 bool Reader::readBoolean(Token token, Value& value)
@@ -337,6 +395,5 @@ bool Reader::readObject(Value& value)
 
 	return true;
 }
-
 
 }	// namespace json

@@ -23,7 +23,7 @@ public:
 	Value();
 	Value(ValueType type);
 	Value(const Value& other);
-	ValueType type();
+	ValueType type() const;
 
 	Value(int intValue);
 	Value(double doubleValue);
@@ -40,16 +40,17 @@ public:
 	bool isArray() const;
 	bool isObject() const;
 
-	bool toInt(int& intValue);
-	bool toDouble(double& doubleValue);
-	bool toFloat(float& floatValue);
-	bool toString(std::string& strValue);
-	bool toBoolean(bool& boolValue);
+	bool toInt(int& intValue) const;
+	bool toDouble(double& doubleValue) const;
+	bool toFloat(float& floatValue) const;
+	bool toString(std::string& strValue) const;
+	bool toBoolean(bool& boolValue) const;
 
 	bool append(const Value& value);
 	bool insert(std::size_t pos, const Value& value);
 	bool removeIndex(std::size_t index);
 	bool removeMember(const std::string& key);
+	std::vector<std::string> keys() const;
 	int size() const;
 
 	Value& operator=(const Value& other);

@@ -41,7 +41,7 @@ Value::Value(ValueType type)
 	}
 }
 
-ValueType Value::type()
+ValueType Value::type() const
 {
 	return m_type;
 }
@@ -166,7 +166,7 @@ bool Value::isObject() const
 	return m_type == ObjectType;
 }
 
-bool Value::toInt(int& intValue)
+bool Value::toInt(int& intValue) const
 {
 	bool ok = true;
 
@@ -192,7 +192,7 @@ bool Value::toInt(int& intValue)
 	return ok;
 }
 
-bool Value::toDouble(double& doubleValue)
+bool Value::toDouble(double& doubleValue) const
 {
 	bool ok = true;
 
@@ -218,7 +218,7 @@ bool Value::toDouble(double& doubleValue)
 	return ok;
 }
 
-bool Value::toFloat(float& floatValue)
+bool Value::toFloat(float& floatValue) const
 {
 	bool ok = true;
 
@@ -244,7 +244,7 @@ bool Value::toFloat(float& floatValue)
 	return ok;
 }
 
-bool Value::toString(std::string& strValue)
+bool Value::toString(std::string& strValue) const
 {
 	bool ok = true;
 
@@ -273,7 +273,7 @@ bool Value::toString(std::string& strValue)
 	return ok;
 }
 
-bool Value::toBoolean(bool& boolValue)
+bool Value::toBoolean(bool& boolValue) const
 {
 	bool ok = true;
 
@@ -342,6 +342,19 @@ bool Value::removeMember(const std::string& key)
 
 	m_value.objectValue->erase(it);
 	return true;
+}
+
+std::vector<std::string> Value::keys() const
+{
+	if (!isObject())
+		return std::vector<std::string>();
+
+	std::vector<std::string> keyVec;
+	ObjectValueType::const_iterator it = m_value.objectValue->begin();
+	for (; it != m_value.objectValue->end(); it++)
+		keyVec.push_back(it->first);
+
+	return keyVec;
 }
 
 int Value::size() const
@@ -414,7 +427,7 @@ const Value& Value::operator[](const std::string& key) const
 	assert(isObject());
 	ObjectValueType::iterator it = m_value.objectValue->find(key);
 	if (it == m_value.objectValue->end())
-		return nullValue;
+		return nullValue;	// 右值，找不到则返回一个类静态变量
 
 	return it->second;
 }
